@@ -4,29 +4,91 @@ body {
   font-family: 'Segoe UI', Roboto, Arial, sans-serif;
   background: linear-gradient(-45deg, #eaf6fb, #99c1de, #fdf6e3, #b6e0c1);
   background-size: 400% 400%;
+  animation: gradientShift 15s ease infinite;
   box-shadow: inset 0 0 150px rgba(0,0,0,0.08);
   display: flex;
   justify-content: center;
   align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .container {
-  padding: 20px;
-  box-sizing: border-box;
   width: 100%;
-  max-width: 430px;
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: center;
+  min-height: 80vh;
+}
+
+.welcome-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px;
+  color: #3b5a6a;
+}
+
+.welcome-section h1 {
+  font-size: 3.5rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  line-height: 1.2;
+  background: linear-gradient(135deg, #3b5a6a, #79a4ea);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.welcome-section p {
+  font-size: 1.2rem;
+  line-height: 1.6;
+  margin-bottom: 30px;
+  opacity: 0.8;
+}
+
+.features-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.features-list li {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  font-size: 1.1rem;
+}
+
+.features-list li::before {
+  content: "✓";
+  color: #4CAF50;
+  font-weight: bold;
+  margin-right: 15px;
+  font-size: 1.3rem;
 }
 
 .card {
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 8px 32px rgba(60, 80, 120, 0.15);
-  border-radius: 16px;
-  padding: 48px 36px 32px 36px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 60px rgba(60, 80, 120, 0.15);
+  border-radius: 24px;
+  padding: 50px 40px;
   text-align: center;
   opacity: 0;
   transform: translateY(40px);
   animation: fadeInUp 0.8s ease forwards;
   position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 @keyframes fadeInUp {
@@ -37,100 +99,109 @@ body {
 }
 
 .site-logo {
-  width: 135px;
-  max-width: 180px;
-  margin: 0 auto 15px auto;
+  width: 120px;
+  max-width: 150px;
+  margin: 0 auto 25px auto;
   object-fit: contain;
   border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
 }
 
 h2 {
   color: #3b5a6a;
   letter-spacing: 1px;
-  margin-bottom: 20px;
+  margin-bottom: 30px;
+  font-size: 2rem;
+  font-weight: 600;
 }
 
 .input-group {
   position: relative;
   width: 100%;
-  margin-bottom: 18px;
+  margin-bottom: 25px;
+  text-align: left;
 }
 
 input[type='email'],
 input[type='password'],
 input[type='text'] {
   width: 100%;
-  padding: 8px 44px 8px 12px;
-  height: 38px;
-  font-size: 14px;
-  border: 1px solid #c4cad0;
-  border-radius: 6px;
-  background: #f5fafb;
+  padding: 16px 50px 16px 20px;
+  height: 56px;
+  font-size: 16px;
+  border: 2px solid #e1e8ed;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.9);
   box-sizing: border-box;
-  transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.2s ease;
+  transition: all 0.3s ease;
+  font-family: inherit;
 }
 
 input[type='email']:focus,
 input[type='password']:focus,
 input[type='text']:focus {
   border-color: #79a4ea;
-  box-shadow: 0 0 8px 2px #79a4ea55;
+  box-shadow: 0 0 0 4px rgba(121, 164, 234, 0.1);
   background: #ffffff;
   outline: none;
-  transform: scale(1.03);
+  transform: translateY(-2px);
 }
 
 #togglePwd {
   position: absolute;
   top: 50%;
-  right: 12px;
+  right: 20px;
   transform: translateY(-50%);
-  font-size: 18px;
+  font-size: 20px;
   cursor: pointer;
   color: #79a4ea;
   user-select: none;
-  transition: color 0.2s;
+  transition: all 0.2s;
+  padding: 5px;
 }
 
 #togglePwd:hover {
   color: #5277b6;
+  transform: translateY(-50%) scale(1.1);
 }
 
 .primary-btn {
-  padding: 12px 0;
+  padding: 18px 0;
   width: 100%;
   border: none;
-  border-radius: 6px;
-  background: linear-gradient(90deg, #99c1de, #b6e0c1 85%);
+  border-radius: 12px;
+  background: linear-gradient(135deg, #99c1de, #b6e0c1);
   color: #3a5a5b;
-  font-size: 17px;
-  margin-top: 10px;
-  font-weight: 500;
+  font-size: 18px;
+  margin-top: 20px;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 1px 8px rgba(76, 92, 105, 0.11);
-  transition: background 0.25s ease, transform 0.18s ease, box-shadow 0.25s ease;
+  box-shadow: 0 8px 25px rgba(76, 92, 105, 0.15);
+  transition: all 0.3s ease;
   position: relative;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  font-family: inherit;
 }
 
 .primary-btn:hover {
-  background: linear-gradient(90deg, #b6e0c1, #99c1de 85%);
-  box-shadow: 0 6px 18px rgba(76, 92, 105, 0.22);
-  transform: scale(1.05);
+  background: linear-gradient(135deg, #b6e0c1, #99c1de);
+  box-shadow: 0 12px 35px rgba(76, 92, 105, 0.25);
+  transform: translateY(-3px);
 }
 
 .primary-btn:active {
-  transform: scale(0.95);
-  box-shadow: 0 3px 10px rgba(76, 92, 105, 0.15);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(76, 92, 105, 0.2);
 }
 
 #login-btn-spinner svg {
   animation: spin 0.9s linear infinite;
   stroke: #3a5a5b;
 }
+
 @keyframes spin {
   100% {
     transform: rotate(360deg);
@@ -138,51 +209,108 @@ input[type='text']:focus {
 }
 
 .switch-link {
-  margin-top: 14px;
-  font-size: 14px;
+  margin-top: 25px;
+  font-size: 16px;
+  color: #666;
 }
+
 .switch-link a {
   color: #79a4ea;
   text-decoration: none;
+  font-weight: 600;
   transition: color 0.18s;
 }
+
 .switch-link a:hover {
   color: #5277b6;
   text-decoration: underline;
 }
 
 @keyframes shake {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  20%,
-  60% {
-    transform: translateX(-10px);
-  }
-  40%,
-  80% {
-    transform: translateX(10px);
-  }
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-10px); }
+  40%, 80% { transform: translateX(10px); }
 }
 
 .shake {
   animation: shake 0.4s;
 }
 
-@media (max-width: 480px) {
+@media (max-width: 1024px) {
+  .container {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    max-width: 600px;
+  }
+  
+  .welcome-section {
+    text-align: center;
+    padding: 20px;
+  }
+  
+  .welcome-section h1 {
+    font-size: 2.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    padding: 10px;
+  }
+  
+  .container {
+    gap: 20px;
+  }
+  
   .card {
-    padding: 24px 16px 24px 16px;
-    border-radius: 0 0 18px 18px;
+    padding: 30px 25px;
+    border-radius: 16px;
   }
+  
+  .welcome-section h1 {
+    font-size: 2rem;
+  }
+  
+  .welcome-section p {
+    font-size: 1rem;
+  }
+  
   input[type='email'],
-  input[type='password'] {
-    width: 100%;
-    min-width: unset;
-    max-width: unset;
+  input[type='password'],
+  input[type='text'] {
+    height: 50px;
+    padding: 14px 45px 14px 16px;
+    font-size: 15px;
   }
+  
+  .primary-btn {
+    padding: 16px 0;
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-section {
+    display: none;
+  }
+  
+  .container {
+    grid-template-columns: 1fr;
+    justify-content: center;
+  }
+  
+  .card {
+    padding: 25px 20px;
+    margin: 0;
+  }
+  
   .site-logo {
     width: 80px;
-    margin-bottom: 14px;
+    margin-bottom: 20px;
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 25px;
   }
 }
