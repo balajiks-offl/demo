@@ -27,8 +27,10 @@
       backdrop-filter: blur(10px);
       padding: 20px 0;
       box-shadow: 0 2px 20px rgba(0,0,0,0.1);
-      position: sticky;
+      position: fixed;
       top: 0;
+      left: 0;
+      right: 0;
       z-index: 1000;
     }
 
@@ -76,7 +78,7 @@
     .container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 30px 20px;
+      padding: 120px 20px 30px;
     }
 
     /* Navigation Tabs */
@@ -272,6 +274,47 @@
     }
 
     /* Notifications */
+    .notification-icon {
+      position: fixed;
+      top: 50%;
+      right: 30px;
+      transform: translateY(-50%);
+      background: #4CAF50;
+      color: white;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(76, 175, 80, 0.3);
+      transition: all 0.3s ease;
+      z-index: 999;
+      font-size: 24px;
+    }
+
+    .notification-icon:hover {
+      transform: translateY(-50%) scale(1.1);
+      box-shadow: 0 6px 25px rgba(76, 175, 80, 0.4);
+    }
+
+    .notification-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background: #e74c3c;
+      color: white;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: bold;
+    }
+
     .notification {
       background: #e8f5e8;
       border-left: 4px solid #4CAF50;
@@ -288,6 +331,49 @@
     .notification.error {
       background: #f8d7da;
       border-left-color: #dc3545;
+    }
+
+    /* Quick Action Buttons */
+    .quick-actions {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      z-index: 999;
+    }
+
+    .quick-action-btn {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: white;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      transition: all 0.3s ease;
+    }
+
+    .quick-action-btn:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 25px rgba(0,0,0,0.3);
+    }
+
+    .quick-action-btn.book {
+      background: #2196F3;
+    }
+
+    .quick-action-btn.tickets {
+      background: #FF9800;
+    }
+
+    .quick-action-btn.help {
+      background: #9C27B0;
     }
 
     /* Responsive */
@@ -308,6 +394,18 @@
 
       .container {
         padding: 20px 15px;
+      }
+      
+      .notification-icon,
+      .quick-actions {
+        right: 20px;
+      }
+      
+      .quick-action-btn,
+      .notification-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 20px;
       }
     }
 
@@ -381,6 +479,19 @@
       </div>
     </div>
   </header>
+
+  <!-- Floating Notification Icon -->
+  <div class="notification-icon" onclick="showSection('notifications')" title="Notifications">
+    🔔
+    <div class="notification-badge" id="notificationBadge" style="display: none;">0</div>
+  </div>
+
+  <!-- Quick Action Buttons -->
+  <div class="quick-actions">
+    <button class="quick-action-btn book" onclick="showSection('book-appointment')" title="Book Appointment">📅</button>
+    <button class="quick-action-btn tickets" onclick="showSection('my-tickets')" title="My Tickets">🎫</button>
+    <button class="quick-action-btn help" onclick="showSection('chatbot')" title="Help & FAQ">❓</button>
+  </div>
 
   <!-- Main Container -->
   <div class="container">
@@ -695,6 +806,12 @@
     function loadDashboardData() {
       if (!currentUser) return;
       
+      // Show loading state
+      document.getElementById('totalTickets').innerHTML = '<div class="spinner" style="width: 20px; height: 20px; margin: 0 auto;"></div>';
+      document.getElementById('activeTickets').innerHTML = '<div class="spinner" style="width: 20px; height: 20px; margin: 0 auto;"></div>';
+      document.getElementById('completedTickets').innerHTML = '<div class="spinner" style="width: 20px; height: 20px; margin: 0 auto;"></div>';
+      document.getElementById('upcomingAppointments').innerHTML = '<div class="spinner" style="width: 20px; height: 20px; margin: 0 auto;"></div>';
+      
       // Load statistics
       db.collection("tickets")
         .where("userId", "==", currentUser.uid)
@@ -703,25 +820,49 @@
           const tickets = [];
           snapshot.forEach(doc => tickets.push({id: doc.id, ...doc.data()}));
           
+          // Update statistics
           document.getElementById('totalTickets').textContent = tickets.length;
           document.getElementById('activeTickets').textContent = tickets.filter(t => t.status === 'Open' || t.status === 'Waiting').length;
           document.getElementById('completedTickets').textContent = tickets.filter(t => t.status === 'Closed').length;
-          document.getElementById('upcomingAppointments').textContent = tickets.filter(t => new Date(t.appointmentDate) > new Date()).length;
+          document.getElementById('upcomingAppointments').textContent = tickets.filter(t => t.appointmentDate && new Date(t.appointmentDate) > new Date()).length;
           
           // Load recent activity
-          const recentTickets = tickets.slice(0, 5);
+          const recentTickets = tickets
+            .sort((a, b) => (b.timestamp?.toDate() || new Date(0)) - (a.timestamp?.toDate() || new Date(0)))
+            .slice(0, 5);
+            
           const activityHtml = recentTickets.length > 0 
             ? recentTickets.map(ticket => `
                 <div class="notification">
                   <strong>Ticket #${ticket.id.substring(0, 6)}</strong><br>
-                  ${ticket.appointmentDate} at ${ticket.appointmentTime}<br>
-                  Status: ${ticket.status}
+                  ${ticket.appointmentDate || 'Date TBD'} at ${ticket.appointmentTime || 'Time TBD'}<br>
+                  Status: <span style="color: ${getStatusColor(ticket.status)}">${ticket.status || 'Pending'}</span>
                 </div>
               `).join('')
             : '<p>No recent activity</p>';
           
           document.getElementById('recentActivity').innerHTML = activityHtml;
+        })
+        .catch(error => {
+          console.error('Error loading dashboard data:', error);
+          document.getElementById('recentActivity').innerHTML = '<p style="color: #e74c3c;">Error loading data. Please refresh the page.</p>';
+          
+          // Reset counters on error
+          document.getElementById('totalTickets').textContent = '0';
+          document.getElementById('activeTickets').textContent = '0';
+          document.getElementById('completedTickets').textContent = '0';
+          document.getElementById('upcomingAppointments').textContent = '0';
         });
+    }
+
+    function getStatusColor(status) {
+      switch(status?.toLowerCase()) {
+        case 'open': return '#4CAF50';
+        case 'waiting': return '#FF9800';
+        case 'closed': return '#2196F3';
+        case 'cancelled': return '#e74c3c';
+        default: return '#666';
+      }
     }
 
     // Booking Functions
@@ -752,7 +893,9 @@
         alert('Appointment booked successfully!');
         document.getElementById('bookingForm').reset();
         loadDashboardData();
+        showSection('my-tickets');
       } catch (error) {
+        console.error('Error booking appointment:', error);
         alert('Error booking appointment: ' + error.message);
       }
     });
@@ -761,12 +904,13 @@
     function loadMyTickets() {
       if (!currentUser) return;
       
+      const tbody = document.querySelector('#ticketsTable tbody');
+      tbody.innerHTML = '<tr><td colspan="6" class="loading"><div class="spinner"></div>Loading tickets...</td></tr>';
+      
       db.collection("tickets")
         .where("userId", "==", currentUser.uid)
-        .orderBy("timestamp", "desc")
         .get()
         .then(snapshot => {
-          const tbody = document.querySelector('#ticketsTable tbody');
           tbody.innerHTML = '';
           
           if (snapshot.empty) {
@@ -774,22 +918,33 @@
             return;
           }
           
+          const tickets = [];
           snapshot.forEach(doc => {
-            const ticket = doc.data();
+            tickets.push({id: doc.id, ...doc.data()});
+          });
+          
+          // Sort by timestamp (most recent first)
+          tickets.sort((a, b) => (b.timestamp?.toDate() || new Date(0)) - (a.timestamp?.toDate() || new Date(0)));
+          
+          tickets.forEach(ticket => {
             const row = `
               <tr>
-                <td>#${doc.id.substring(0, 6)}</td>
+                <td>#${ticket.id.substring(0, 6)}</td>
                 <td>${ticket.appointmentDate || '-'}</td>
                 <td>${ticket.appointmentTime || '-'}</td>
-                <td><span class="status-${ticket.status?.toLowerCase()}">${ticket.status || '-'}</span></td>
+                <td><span style="color: ${getStatusColor(ticket.status)}">${ticket.status || 'Pending'}</span></td>
                 <td>${ticket.ticketType || '-'}</td>
                 <td>
-                  ${ticket.status === 'Open' ? `<button class="btn btn-danger" onclick="cancelTicket('${doc.id}')">Cancel</button>` : '-'}
+                  ${(ticket.status === 'Open' || ticket.status === 'Waiting') ? `<button class="btn btn-danger" onclick="cancelTicket('${ticket.id}')">Cancel</button>` : '-'}
                 </td>
               </tr>
             `;
             tbody.innerHTML += row;
           });
+        })
+        .catch(error => {
+          console.error('Error loading tickets:', error);
+          tbody.innerHTML = '<tr><td colspan="6" style="color: #e74c3c;">Error loading tickets. Please refresh the page.</td></tr>';
         });
     }
 
@@ -802,6 +957,7 @@
           loadMyTickets();
           loadDashboardData();
         }).catch(error => {
+          console.error('Error cancelling ticket:', error);
           alert('Error cancelling ticket: ' + error.message);
         });
       }
@@ -812,12 +968,14 @@
       // Load user's swappable tickets
       if (!currentUser) return;
       
+      const container = document.getElementById('swappableTickets');
+      container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading your tickets...</div>';
+      
       db.collection("tickets")
         .where("userId", "==", currentUser.uid)
         .where("status", "==", "Open")
         .get()
         .then(snapshot => {
-          const container = document.getElementById('swappableTickets');
           container.innerHTML = '';
           
           if (snapshot.empty) {
@@ -835,6 +993,10 @@
               </div>
             `;
           });
+        })
+        .catch(error => {
+          console.error('Error loading swap data:', error);
+          container.innerHTML = '<p style="color: #e74c3c;">Error loading tickets. Please refresh the page.</p>';
         });
     }
 
@@ -846,44 +1008,66 @@
     function loadNotifications() {
       if (!currentUser) return;
       
+      const container = document.getElementById('notificationsList');
+      container.innerHTML = '<div class="loading"><div class="spinner"></div>Loading notifications...</div>';
+      
       db.collection("notifications")
         .where("userId", "==", currentUser.uid)
-        .orderBy("timestamp", "desc")
         .limit(20)
         .get()
         .then(snapshot => {
-          const container = document.getElementById('notificationsList');
           container.innerHTML = '';
           
           if (snapshot.empty) {
             container.innerHTML = '<p>No notifications</p>';
+            updateNotificationBadge(0);
             return;
           }
           
+          let notificationCount = 0;
           snapshot.forEach(doc => {
             const notification = doc.data();
+            notificationCount++;
             container.innerHTML += `
               <div class="notification">
                 <strong>${notification.type || 'Notification'}</strong><br>
-                ${notification.message || notification.userName || 'New notification'}<br>
-                <small>${notification.timestamp ? notification.timestamp.toDate().toLocaleString() : 'Recently'}</small>
+                ${notification.message || 'New notification'}<br>
+                <small>${notification.timestamp ? new Date(notification.timestamp.seconds * 1000).toLocaleString() : 'Recently'}</small>
               </div>
             `;
           });
+          
+          updateNotificationBadge(notificationCount);
+        })
+        .catch(error => {
+          console.error('Error loading notifications:', error);
+          container.innerHTML = '<p style="color: #e74c3c;">Error loading notifications. Please refresh the page.</p>';
+          updateNotificationBadge(0);
         });
+    }
+
+    function updateNotificationBadge(count) {
+      const badge = document.getElementById('notificationBadge');
+      if (count > 0) {
+        badge.textContent = count > 99 ? '99+' : count;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
+      }
     }
 
     // History Functions
     function loadHistory() {
       if (!currentUser) return;
       
+      const tbody = document.querySelector('#historyTable tbody');
+      tbody.innerHTML = '<tr><td colspan="6" class="loading"><div class="spinner"></div>Loading history...</td></tr>';
+      
       db.collection("tickets")
         .where("userId", "==", currentUser.uid)
         .where("status", "in", ["Closed", "Cancelled"])
-        .orderBy("timestamp", "desc")
         .get()
         .then(snapshot => {
-          const tbody = document.querySelector('#historyTable tbody');
           tbody.innerHTML = '';
           
           if (snapshot.empty) {
@@ -905,6 +1089,10 @@
             `;
             tbody.innerHTML += row;
           });
+        })
+        .catch(error => {
+          console.error('Error loading history:', error);
+          tbody.innerHTML = '<tr><td colspan="6" style="color: #e74c3c;">Error loading history. Please refresh the page.</td></tr>';
         });
     }
 
@@ -920,6 +1108,8 @@
 
     function loadProfile() {
       if (!currentUser) return;
+      
+      document.getElementById('profileContent').innerHTML = '<div class="loading"><div class="spinner"></div>Loading profile...</div>';
       
       db.collection("users").doc(currentUser.uid).get()
         .then(doc => {
@@ -943,7 +1133,19 @@
                 <input type="tel" value="${userData.phone || ''}" readonly>
               </div>
             `;
+          } else {
+            document.getElementById('profileContent').innerHTML = `
+              <div class="form-group">
+                <label>Email:</label>
+                <input type="email" value="${currentUser.email}" readonly>
+              </div>
+              <p style="color: #666; font-style: italic;">Profile information not found. Please contact support.</p>
+            `;
           }
+        })
+        .catch(error => {
+          console.error('Error loading profile:', error);
+          document.getElementById('profileContent').innerHTML = '<p style="color: #e74c3c;">Error loading profile. Please try again.</p>';
         });
     }
 
@@ -983,6 +1185,7 @@
         
         // Load initial dashboard data
         loadDashboardData();
+        loadNotifications(); // Load notifications for badge count
       } else {
         window.location.href = 'index.html';
       }
